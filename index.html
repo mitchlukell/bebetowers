@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Household Expense Tracker</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background-color: #f8f9fc;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.2em;
+            font-weight: 300;
+        }
+        
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fc;
+        }
+        
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-left: 4px solid #667eea;
+        }
+        
+        .card h3 {
+            margin: 0 0 10px 0;
+            color: #667eea;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .card .amount {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+        }
+        
+        .input-section {
+            padding: 30px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .input-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #555;
+            font-size: 0.9em;
+        }
+        
+        .form-group input, .form-group select {
+            padding: 10px;
+            border: 2px solid #e1e5e9;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .add-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s;
+            grid-column: 1 / -1;
+            justify-self: start;
+        }
+        
+        .add-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .table-container {
+            padding: 0 30px 30px;
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+        }
+        
+        th {
+            background: #f8f9fc;
+            padding: 15px 10px;
+            text-align: left;
+            font-weight: 600;
+            color: #555;
+            border-bottom: 2px solid #e1e5e9;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        tr:hover {
+            background-color: #f8f9fc;
+        }
+        
+        .amount-cell {
+            font-weight: 600;
+            text-align: right;
+        }
+        
+        .delete-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .delete-btn:hover {
+            background: #ff5252;
+        }
+        
+        .card.positive { border-left-color: #28a745; }
+        .card.negative { border-left-color: #dc3545; }
+        
+        .category-housing { border-left-color: #4CAF50; }
+        .category-food { border-left-color: #FF9800; }
+        .category-transportation { border-left-color: #2196F3; }
+        .category-utilities { border-left-color: #9C27B0; }
+        .category-healthcare { border-left-color: #F44336; }
+        .category-entertainment { border-left-color: #E91E63; }
+        .category-shopping { border-left-color: #00BCD4; }
+        .category-other { border-left-color: #607D8B; }
+        
+        .export-section {
+            padding: 20px 30px;
+            background: #f8f9fc;
+            text-align: center;
+        }
+        
+        .export-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 0 10px;
+        }
+        
+        .export-btn:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Household Finance Tracker</h1>
+        </div>
+        
+        <div class="summary-cards">
+            <div class="card">
+                <h3>Total Income</h3>
+                <p class="amount" id="totalIncome">£0.00</p>
+            </div>
+            <div class="card">
+                <h3>Total Expenses</h3>
+                <p class="amount" id="totalExpenses">£0.00</p>
+            </div>
+            <div class="card">
+                <h3>Net Balance</h3>
+                <p class="amount" id="netBalance">£0.00</p>
+            </div>
+            <div class="card">
+                <h3>This Month</h3>
+                <p class="amount" id="monthlyExpenses">£0.00</p>
+            </div>
+            <div class="card">
+                <h3>Average Daily</h3>
+                <p class="amount" id="dailyAverage">£0.00</p>
+            </div>
+            <div class="card">
+                <h3>Total Entries</h3>
+                <p class="amount" id="totalEntries">0</p>
+            </div>
+        </div>
+        
+        <div class="input-section">
+            <div class="input-form">
+                <div class="form-group">
+                    <label for="date">Date</label>
+                    <input type="date" id="date" required>
+                </div>
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <select id="category" required>
+                        <option value="">Select Category</option>
+                        <option value="Housing">Housing (Rent/Mortgage)</option>
+                        <option value="Food">Food & Groceries</option>
+                        <option value="Transportation">Transportation</option>
+                        <option value="Utilities">Utilities</option>
+                        <option value="Healthcare">Healthcare</option>
+                        <option value="Entertainment">Entertainment</option>
+                        <option value="Shopping">Shopping</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <input type="text" id="description" placeholder="Brief description" required>
+                </div>
+                <div class="form-group">
+                    <label for="amount">Amount (£)</label>
+                    <input type="number" id="amount" step="0.01" placeholder="0.00" required>
+                </div>
+                <div class="form-group">
+                    <label for="user">User</label>
+                    <select id="user" required>
+                        <option value="">Select User</option>
+                        <option value="Luke">Luke</option>
+                        <option value="Zofia">Zofia</option>
+                        <option value="Child 1">Child 1</option>
+                        <option value="Child 2">Child 2</option>
+                        <option value="Bebe Towers">Bebe Towers</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="paymentMethod">Payment Method</label>
+                    <select id="paymentMethod">
+                        <option value="Cash">Cash</option>
+                        <option value="Credit Card">Credit Card</option>
+                        <option value="Debit Card">Debit Card</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                        <option value="Check">Check</option>
+                    </select>
+                </div>
+                <button class="add-btn" onclick="addExpense()">Add Expense</button>
+            </div>
+        </div>
+        
+        <div class="table-container">
+            <table id="expenseTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>User</th>
+                        <th>Category</th>
+                        <th>Description</th>
+                        <th>Payment Method</th>
+                        <th>Amount</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="expenseTableBody">
+                    <!-- Sample data -->
+                    <tr>
+                        <td>2025-07-26</td>
+                        <td style="color: #28a745; font-weight: bold;">Income</td>
+                        <td>Luke</td>
+                        <td>Salary</td>
+                        <td>Monthly salary</td>
+                        <td>Bank Transfer</td>
+                        <td class="amount-cell" style="color: #28a745;">+£2,500.00</td>
+                        <td><button class="delete-btn" onclick="deleteRow(this)">Delete</button></td>
+                    </tr>
+                    <tr>
+                        <td>2025-07-25</td>
+                        <td style="color: #dc3545; font-weight: bold;">Expense</td>
+                        <td>Luke</td>
+                        <td>Food</td>
+                        <td>Weekly groceries</td>
+                        <td>Credit Card</td>
+                        <td class="amount-cell" style="color: #dc3545;">-£127.45</td>
+                        <td><button class="delete-btn" onclick="deleteRow(this)">Delete</button></td>
+                    </tr>
+                    <tr>
+                        <td>2025-07-24</td>
+                        <td style="color: #dc3545; font-weight: bold;">Expense</td>
+                        <td>Bebe Towers</td>
+                        <td>Utilities</td>
+                        <td>Electric bill</td>
+                        <td>Bank Transfer</td>
+                        <td class="amount-cell" style="color: #dc3545;">-£89.32</td>
+                        <td><button class="delete-btn" onclick="deleteRow(this)">Delete</button></td>
+                    </tr>
+                    <tr>
+                        <td>2025-07-23</td>
+                        <td style="color: #dc3545; font-weight: bold;">Expense</td>
+                        <td>Zofia</td>
+                        <td>Transportation</td>
+                        <td>Gas fill-up</td>
+                        <td>Debit Card</td>
+                        <td class="amount-cell" style="color: #dc3545;">-£45.00</td>
+                        <td><button class="delete-btn" onclick="deleteRow(this)">Delete</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="export-section">
+            <button class="export-btn" onclick="exportToCSV()">Export to CSV</button>
+            <button class="export-btn" onclick="printTable()">Print Report</button>
+        </div>
+    </div>
+
+    <script>
+        // Set today's date as default
+        document.getElementById('date').valueAsDate = new Date();
+        
+        let transactions = [
+            {date: '2025-07-26', type: 'income', user: 'Luke', category: 'Salary', description: 'Monthly salary', paymentMethod: 'Bank Transfer', amount: 2500.00},
+            {date: '2025-07-25', type: 'expense', user: 'Luke', category: 'Food', description: 'Weekly groceries', paymentMethod: 'Credit Card', amount: 127.45},
+            {date: '2025-07-24', type: 'expense', user: 'Bebe Towers', category: 'Utilities', description: 'Electric bill', paymentMethod: 'Bank Transfer', amount: 89.32},
+            {date: '2025-07-23', type: 'expense', user: 'Zofia', category: 'Transportation', description: 'Gas fill-up', paymentMethod: 'Debit Card', amount: 45.00}
+        ];
+        
+        function toggleFields() {
+            const transactionType = document.getElementById('transactionType').value;
+            const categoryGroup = document.getElementById('categoryGroup');
+            const incomeSourceGroup = document.getElementById('incomeSourceGroup');
+            
+            if (transactionType === 'income') {
+                categoryGroup.style.display = 'none';
+                incomeSourceGroup.style.display = 'flex';
+                document.getElementById('category').required = false;
+                document.getElementById('incomeSource').required = true;
+            } else if (transactionType === 'expense') {
+                categoryGroup.style.display = 'flex';
+                incomeSourceGroup.style.display = 'none';
+                document.getElementById('category').required = true;
+                document.getElementById('incomeSource').required = false;
+            } else {
+                categoryGroup.style.display = 'flex';
+                incomeSourceGroup.style.display = 'none';
+                document.getElementById('category').required = true;
+                document.getElementById('incomeSource').required = false;
+            }
+        }
+        
+        function addTransaction() {
+            const transactionType = document.getElementById('transactionType').value;
+            const date = document.getElementById('date').value;
+            const user = document.getElementById('user').value;
+            const category = transactionType === 'income' ? document.getElementById('incomeSource').value : document.getElementById('category').value;
+            const description = document.getElementById('description').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            
+            if (!transactionType || !date || !user || !category || !description || !amount) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            const transaction = {
+                date: date,
+                type: transactionType,
+                user: user,
+                category: category,
+                description: description,
+                paymentMethod: paymentMethod,
+                amount: amount
+            };
+            
+            transactions.push(transaction);
+            addRowToTable(transaction);
+            updateSummary();
+            clearForm();
+        }
+        
+        function addRowToTable(transaction) {
+            const tableBody = document.getElementById('expenseTableBody');
+            const row = tableBody.insertRow(0); // Insert at top
+            
+            const typeColor = transaction.type === 'income' ? '#28a745' : '#dc3545';
+            const amountPrefix = transaction.type === 'income' ? '+' : '-';
+            const typeText = transaction.type === 'income' ? 'Income' : 'Expense';
+            
+            row.innerHTML = `
+                <td>${transaction.date}</td>
+                <td style="color: ${typeColor}; font-weight: bold;">${typeText}</td>
+                <td>${transaction.user}</td>
+                <td>${transaction.category}</td>
+                <td>${transaction.description}</td>
+                <td>${transaction.paymentMethod}</td>
+                <td class="amount-cell" style="color: ${typeColor};">${amountPrefix}£${transaction.amount.toFixed(2)}</td>
+                <td><button class="delete-btn" onclick="deleteRow(this)">Delete</button></td>
+            `;
+        }
+        
+        function deleteRow(button) {
+            const row = button.closest('tr');
+            const rowIndex = Array.from(row.parentNode.children).indexOf(row);
+            
+            // Remove from transactions array (accounting for reverse order in table)
+            transactions.splice(transactions.length - 1 - rowIndex, 1);
+            
+            row.remove();
+            updateSummary();
+        }
+        
+        function updateSummary() {
+            const income = transactions
+                .filter(t => t.type === 'income')
+                .reduce((sum, t) => sum + t.amount, 0);
+                
+            const expenses = transactions
+                .filter(t => t.type === 'expense')
+                .reduce((sum, t) => sum + t.amount, 0);
+                
+            const netBalance = income - expenses;
+            
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+            
+            const monthlyExpenses = transactions
+                .filter(t => {
+                    const transactionDate = new Date(t.date);
+                    return t.type === 'expense' && 
+                           transactionDate.getMonth() === currentMonth && 
+                           transactionDate.getFullYear() === currentYear;
+                })
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            const dailyAverage = transactions.length > 0 ? expenses / Math.max(1, getDaysSinceFirstTransaction()) : 0;
+            
+            document.getElementById('totalIncome').textContent = `£${income.toFixed(2)}`;
+            document.getElementById('totalExpenses').textContent = `£${expenses.toFixed(2)}`;
+            document.getElementById('netBalance').textContent = `£${netBalance.toFixed(2)}`;
+            document.getElementById('monthlyExpenses').textContent = `£${monthlyExpenses.toFixed(2)}`;
+            document.getElementById('dailyAverage').textContent = `£${dailyAverage.toFixed(2)}`;
+            document.getElementById('totalEntries').textContent = transactions.length.toString();
+            
+            // Color code the net balance
+            const balanceCard = document.getElementById('netBalance').closest('.card');
+            balanceCard.classList.remove('positive', 'negative');
+            if (netBalance > 0) {
+                balanceCard.classList.add('positive');
+            } else if (netBalance < 0) {
+                balanceCard.classList.add('negative');
+            }
+        }
+        
+        function getDaysSinceFirstTransaction() {
+            if (transactions.length === 0) return 1;
+            
+            const dates = transactions.map(t => new Date(t.date));
+            const firstDate = new Date(Math.min(...dates));
+            const today = new Date();
+            const diffTime = Math.abs(today - firstDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            return Math.max(1, diffDays);
+        }
+        
+        function clearForm() {
+            document.getElementById('date').valueAsDate = new Date();
+            document.getElementById('transactionType').value = '';
+            document.getElementById('user').value = '';
+            document.getElementById('category').value = '';
+            document.getElementById('incomeSource').value = '';
+            document.getElementById('description').value = '';
+            document.getElementById('amount').value = '';
+            document.getElementById('paymentMethod').value = 'Cash';
+            toggleFields(); // Reset field visibility
+        }
+        
+        function exportToCSV() {
+            const headers = ['Date', 'Type', 'User', 'Category', 'Description', 'Payment Method', 'Amount'];
+            const csvContent = [
+                headers.join(','),
+                ...transactions.map(transaction => [
+                    transaction.date,
+                    transaction.type,
+                    transaction.user,
+                    transaction.category,
+                    `"${transaction.description}"`,
+                    transaction.paymentMethod,
+                    transaction.amount
+                ].join(','))
+            ].join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `household_finances_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+        
+        function printTable() {
+            window.print();
+        }
+        
+        // Initialize summary on page load
+        updateSummary();
+    </script>
+</body>
+</html>
